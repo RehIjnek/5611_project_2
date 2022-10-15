@@ -22,24 +22,20 @@ Vec2 pos[] = new Vec2[maxNodes];
 Vec2 vel[] = new Vec2[maxNodes];
 Vec2 acc[] = new Vec2[maxNodes];
 
-int numNodes = 10;
+
 int numHoriz = 5;
+int numVert = 8;
+int numNodes = numVert - 1 * numHoriz;
 
 float kFric = 30.0;
 
 void initScene(){
-  //for (int i = 0; i < numNodes; i++){
-  //  pos[i] = new Vec2(0,0);
-  //  pos[i].x = stringTop.x;
-  //  pos[i].y = stringTop.y + 8*i; //Make each node a little lower
-  //  vel[i] = new Vec2(0,0);
-  //}
   for (int i = 0; i < numHoriz; i++) {
-    for (int j = 0; j < numNodes; j++) {
-      pos[10*i + j] = new Vec2(0,0);
-      pos[10*i + j].x = 100 + 50*i;
-      pos[10*i + j].y = stringTop.y + 8*j; //Make each node a little lower
-      vel[10*i + j] = new Vec2(0,0);
+    for (int j = 0; j < numVert; j++) {
+      pos[numVert*i + j] = new Vec2(0,0);
+      pos[numVert*i + j].x = 100 + 50*i;
+      pos[numVert*i + j].y = stringTop.y + 8*j; //Make each node a little lower
+      vel[numVert*i + j] = new Vec2(0,0);
     }
   }
 }
@@ -47,77 +43,67 @@ void initScene(){
 void update(float dt){
 
   //Reset accelerations each timestep (momenum only applies to velocity)
-  //for (int i = 0; i < numNodes; i++){
-  //  acc[i] = new Vec2(0,0);
-  //  acc[i].add(gravity);
-  //}
   for (int i = 0; i < numHoriz; i++){
-    for (int j = 0; j < numNodes; j++) {
-      acc[10*i + j] = new Vec2(0,0);
-      acc[10*i + j].add(gravity);
+    for (int j = 0; j < numVert; j++) {
+      acc[numVert*i + j] = new Vec2(0,0);
+      acc[numVert*i + j].add(gravity);
     }
   }
   
   //Compute (damped) Hooke's law for each spring
-  //for (int i = 0; i < numNodes-1; i++){
-  //  Vec2 diff = pos[i+1].minus(pos[i]);
-  //  float stringF = -k*(diff.length() - restLen);
-  //  //println(stringF,diff.length(),restLen);
-    
-  //  Vec2 stringDir = diff.normalized();
-  //  float projVbot = dot(vel[i], stringDir);
-  //  float projVtop = dot(vel[i+1], stringDir);
-  //  float dampF = -kv*(projVtop - projVbot);
-    
-  //  float fricF = -kFric*(projVtop - projVbot);
-    
-  //  Vec2 force = stringDir.times(stringF+dampF+fricF);
-  //  acc[i].add(force.times(-1.0/mass));
-  //  acc[i+1].add(force.times(1.0/mass));  
-  //}
   for (int i = 0; i < numHoriz; i++){
-    for (int j = 0; j < numNodes-1; j++) {
-      Vec2 diff = pos[10*i + j + 1].minus(pos[10*i + j]);
+    for (int j = 0; j < numVert-1; j++) {
+      Vec2 diff = pos[numVert*i + j + 1].minus(pos[numVert*i + j]);
       float stringF = -k*(diff.length() - restLen);
       //println(stringF,diff.length(),restLen);
     
       Vec2 stringDir = diff.normalized();
-      float projVbot = dot(vel[10*i + j], stringDir);
-      float projVtop = dot(vel[10*i + j + 1], stringDir);
+      float projVbot = dot(vel[numVert*i + j], stringDir);
+      float projVtop = dot(vel[numVert*i + j + 1], stringDir);
       float dampF = -kv*(projVtop - projVbot);
     
       float fricF = -kFric*(projVtop - projVbot);
     
       Vec2 force = stringDir.times(stringF+dampF+fricF);
-      acc[10*i + j].add(force.times(-1.0/mass));
-      acc[10*i + j + 1].add(force.times(1.0/mass));  
+      acc[numVert*i + j].add(force.times(-1.0/mass));
+      acc[numVert*i + j + 1].add(force.times(1.0/mass));  
+    }
+  } 
+  
+  for (int i = 0; i < numHoriz - 1; i++){
+    for (int j = 0; j < numVert; j++) {
+      Vec2 diff = pos[numVert*(i + 1) + j].minus(pos[numVert*i + j]);
+      float stringF = -k*(diff.length() - restLen);
+      //println(stringF,diff.length(),restLen);
+    
+      Vec2 stringDir = diff.normalized();
+      float projVbot = dot(vel[numVert*i + j], stringDir);
+      float projVtop = dot(vel[numVert*(i + 1) + j], stringDir);
+      float dampF = -kv*(projVtop - projVbot);
+    
+      float fricF = -kFric*(projVtop - projVbot);
+      
+      //Vec2 force = stringDir.times(stringF+dampF+fricF);
+      Vec2 force = new Vec2(0, 0);
+      acc[numVert*i + j].add(force.times(-1.0/mass));
+      acc[numVert*(i + 1) + j].add(force.times(1.0/mass));  
     }
   }
 
   //Eulerian integration
-  //for (int i = 1; i < numNodes; i++){
-  //  vel[i].add(acc[i].times(dt));
-  //  pos[i].add(vel[i].times(dt));
-  //}
   for (int i = 0; i < numHoriz; i++){
-    for (int j = 1; j < numNodes; j++) {
-      vel[10*i + j].add(acc[10*i + j].times(dt));
-      pos[10*i + j].add(vel[10*i + j].times(dt));
+    for (int j = 1; j < numVert; j++) {
+      vel[numVert*i + j].add(acc[numVert*i + j].times(dt));
+      pos[numVert*i + j].add(vel[numVert*i + j].times(dt));
     }
   }
   
   //Collision detection and response
-  //for (int i = 0; i < numNodes; i++){
-  //  if (pos[i].y+radius > floor){
-  //    vel[i].y *= -.9;
-  //    pos[i].y = floor - radius;
-  //  }
-  //}
   for (int i = 0; i < numHoriz; i++){
-    for (int j = 0; j < numNodes ; j++) {
-      if (pos[10*i + j].y+radius > floor){
-        vel[10*i + j].y *= -.9;
-        pos[10*i + j].y = floor - radius;
+    for (int j = 0; j < numVert ; j++) {
+      if (pos[numVert*i + j].y+radius > floor){
+        vel[numVert*i + j].y *= -.9;
+        pos[numVert*i + j].y = floor - radius;
       }
     }
   }
@@ -135,19 +121,29 @@ void draw() {
   }
   fill(0,0,0);
   
-  //for (int i = 0; i < numNodes-1; i++){
-  //  pushMatrix();
-  //  line(pos[i].x,pos[i].y,pos[i+1].x,pos[i+1].y);
-  //  translate(pos[i+1].x,pos[i+1].y);
-  //  sphere(radius);
-  //  popMatrix();
-  //}
+  // Draw Ropes Vertically
   for (int i = 0; i < numHoriz; i++){
-    for (int j = 0; j < numNodes-1 ; j++) {
+    for (int j = 0; j < numVert - 1; j++) {
       pushMatrix();
-      line(pos[10*i + j].x,pos[10*i + j].y,pos[10*i + j + 1].x,pos[10*i + j + 1].y);
-      translate(pos[10*i + j + 1].x,pos[10*i + j + 1].y);
+      line(pos[numVert*i + j].x,pos[numVert*i + j].y,pos[numVert*i + j + 1].x,pos[numVert*i + j + 1].y);
+      translate(pos[numVert*i + j].x,pos[numVert*i + j].y);
       sphere(radius);
+      popMatrix();
+      if(j == numVert - 2) { //Draw the last node of each vertical rope
+        pushMatrix();
+        translate(pos[numVert*i + j + 1].x,pos[numVert*i + j + 1].y);
+        sphere(radius);
+        popMatrix();
+      }
+    }
+  }
+  
+  // Draw Ropes Horizontally
+  for (int i = 0; i < numVert; i++){
+    for (int j = 0; j < numHoriz - 1; j++) {
+      pushMatrix();
+      line(pos[numVert*j + i].x,pos[numVert*j + i].y,pos[numVert*(j + 1) + i].x,pos[numVert*(j + 1) + i].y);
+      translate(pos[numVert*j + i].x,pos[numVert*j + i].y);
       popMatrix();
     }
   }
