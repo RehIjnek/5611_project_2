@@ -158,12 +158,12 @@ void draw() {
   shininess(20);  //More light…
   directionalLight(200, 200, 200, -1, 1, -1); //More light…
   translate(500,obstaclePosition);
-    noStroke();
+  noStroke();
   sphere(obstacleRadius);   //Draw sphere
-
   popMatrix();
   
   stroke(0,0,0);
+  
   if (paused)
     surface.setTitle(windowTitle + " [PAUSED]");
   else
