@@ -3,12 +3,14 @@ Camera camera;
 
 String windowTitle = "Swinging Rope";
 void setup() {
-  size(400, 500, P3D);
+  size(1500, 900, P3D);
   surface.setTitle(windowTitle);
   camera = new Camera();
   initScene();
 }
-
+//Obstacle Parameters
+float obstaclePosition = 400; 
+float obstacleRadius = 80;
 //Simulation Parameters
 float floor = 500;
 Vec2 gravity = new Vec2(0,400);
@@ -27,8 +29,8 @@ Vec2 acc[] = new Vec2[maxNodes];
 
 
 int numHoriz = 5;
-int numVert = 8;
-int numNodes = numVert - 1 * numHoriz;
+int numVert = 5;
+int numNodes = numVert* numHoriz;
 
 float kFric = 30.0;
 
@@ -174,6 +176,20 @@ void draw() {
   //  popMatrix();
   //}
   
+  pushMatrix();
+  fill(0,200,100); 
+  specular(120, 120, 180);  //Setup lights… 
+  ambientLight(90,90,90);   //More light…
+  lightSpecular(255,255,255); 
+  shininess(20);  //More light…
+  directionalLight(200, 200, 200, -1, 1, -1); //More light…
+  translate(500,obstaclePosition);
+    noStroke();
+  sphere(obstacleRadius);   //Draw sphere
+
+  popMatrix();
+  
+  stroke(0,0,0);
   if (paused)
     surface.setTitle(windowTitle + " [PAUSED]");
   else
