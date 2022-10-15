@@ -1,8 +1,11 @@
 //Create Window
+Camera camera;
+
 String windowTitle = "Swinging Rope";
 void setup() {
   size(1500, 900, P3D);
   surface.setTitle(windowTitle);
+  camera = new Camera();
   initScene();
 }
 //Obstacle Parameters
@@ -110,6 +113,8 @@ void update(float dt){
     }
   }
   
+  //update camera
+  camera.Update(1.0/frameRate);
 }
 
 //Draw the scene: one sphere per mass, one line connecting each pair
@@ -149,6 +154,27 @@ void draw() {
       popMatrix();
     }
   }
+  //for (int i = 0; i < numHoriz; i++){
+  //  for (int j = 0; j < numVert-1; j++) {
+  //    pushMatrix();
+  //    line(pos[numVert*i + j].x,pos[numVert*i + j].y,pos[numVert*i + j + 1].x,pos[numVert*i + j + 1].y);
+  //    if (i < numHoriz-1) {
+  //      line(pos[numVert*i + j].x,pos[numVert*i + j].y,pos[numVert*(i+1) + j].x,pos[numVert*(i+1) + j].y);
+  //    }
+  //    translate(pos[numVert*i + j].x,pos[numVert*i + j].y);
+  //    sphere(radius);
+  //    popMatrix();
+  //  }
+  //}
+  //for (int i = 0; i < numHoriz; i++) {
+  //  pushMatrix();
+  //  if (i < numHoriz-1) {
+  //    line(pos[numVert*i + numVert-1].x,pos[numVert*i + numVert-1].y,pos[numVert*(i+1) + numVert-1].x,pos[numVert*(i+1) + numVert-1].y);
+  //  }
+  //  translate(pos[numVert*i + numVert-1].x,pos[numVert*i + numVert-1].y);
+  //  sphere(radius);
+  //  popMatrix();
+  //}
   
   pushMatrix();
   fill(0,200,100); 
@@ -173,8 +199,12 @@ void draw() {
 void keyPressed(){
   if (key == ' ')
     paused = !paused;
+  camera.HandleKeyPressed();
 }
 
+void keyReleased() {
+  camera.HandleKeyReleased();
+}
 
 ///////////////////
 // Vec2D Library
