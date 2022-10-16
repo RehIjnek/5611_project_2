@@ -175,10 +175,10 @@ void draw() {
   translate(obstaclePos.x, obstaclePos.y, obstaclePos.z);
     noStroke();
   sphere(obstacleRadius);   //Draw sphere
-
   popMatrix();
   
   stroke(0,0,0);
+  
   if (paused)
     surface.setTitle(windowTitle + " [PAUSED]");
   else
