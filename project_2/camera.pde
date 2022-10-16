@@ -8,11 +8,11 @@ class Camera
 {
   Camera()
   {
-    position      = new PVector( 200, 200, 200 ); // initial position
-    theta         = 0; // rotation around Y axis. Starts with forward direction as ( 0, 0, -1 )
-    phi           = 0; // rotation around X axis. Starts with up direction as ( 0, 1, 0 )
+    position      = new PVector( 859.635, -119.831, 700.990 ); // initial position
+    theta         = 13.276; // rotation around Y axis. Starts with forward direction as ( 0, 0, -1 )
+    phi           = -0.407; // rotation around X axis. Starts with up direction as ( 0, 1, 0 )
     moveSpeed     = 40;
-    turnSpeed     = 1.57; // radians/sec
+    turnSpeed     = 0.39; // radians/sec
     boostSpeed    = 5;  // extra speed boost for when you press shift
     
     // dont need to change these
@@ -52,6 +52,9 @@ class Camera
     camera( position.x, position.y, position.z,
             position.x + forwardDir.x, position.y + forwardDir.y, position.z + forwardDir.z,
             upDir.x, upDir.y, upDir.z );
+    println("theta " + theta);
+    println("phi " + phi);
+    println("position " + position);
   }
   
   // only need to change if you want difrent keys for the controls
