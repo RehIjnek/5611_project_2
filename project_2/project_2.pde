@@ -1,11 +1,13 @@
 //Create Window
 Camera camera;
+PImage img;
 
 String windowTitle = "Swinging Rope";
 void setup() {
   size(1500, 900, P3D);
   surface.setTitle(windowTitle);
   camera = new Camera();
+  img = loadImage("towel.jpg");
   initScene();
 }
 //Obstacle Parameters
@@ -183,6 +185,19 @@ void draw() {
     surface.setTitle(windowTitle + " [PAUSED]");
   else
     surface.setTitle(windowTitle + " "+ nf(frameRate,0,2) + "FPS");
+    
+  //create the towel texture
+  for (int i = 0; i < numHoriz-1; i++) {
+    for (int j = 0; j < numVert-1; j++) {
+      beginShape();
+      texture(img);
+      vertex(pos[numVert*i + j].x, pos[numVert*i + j].y, pos[numVert*i + j].z, 0, 0);
+      vertex(pos[numVert+(numVert*i + j)].x, pos[numVert+(numVert*i + j)].y, pos[numVert+(numVert*i + j)].z, img.width, 0);
+      vertex(pos[numVert+(numVert*i + j) + 1].x, pos[numVert+(numVert*i + j) + 1].y, pos[numVert+(numVert*i + j) + 1].z, img.width, img.height);
+      vertex(pos[numVert*i + j + 1].x, pos[numVert*i + j + 1].y, pos[numVert*i + j + 1].z, 0, img.height);
+      endShape();  
+    }
+  }
 }
 
 void keyPressed(){
