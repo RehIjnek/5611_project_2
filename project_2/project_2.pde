@@ -7,11 +7,11 @@ void setup() {
   size(1500, 900, P3D);
   surface.setTitle(windowTitle);
   camera = new Camera();
-  img = loadImage("towel.jpg");
+  img = loadImage("towel2.jpg");
   initScene();
 }
 //Obstacle Parameters
-Vec3 obstaclePos = new Vec3(200, 200, 100); 
+Vec3 obstaclePos = new Vec3(200, 200, 75); 
 float obstacleRadius = 80;
 //Simulation Parameters
 float floor = 500;
@@ -30,7 +30,7 @@ Vec3 vel[] = new Vec3[maxNodes];
 Vec3 acc[] = new Vec3[maxNodes];
 
 
-int numHoriz = 5;
+int numHoriz = 6;
 int numVert = 15;
 int numNodes = numVert* numHoriz;
 
@@ -141,31 +141,31 @@ void draw() {
   fill(0,0,0);
   
   // Draw Ropes Vertically
-  for (int i = 0; i < numHoriz; i++){
-    for (int j = 0; j < numVert - 1; j++) {
-      pushMatrix();
-      line(pos[numVert*i + j].x, pos[numVert*i + j].y, pos[numVert*i + j].z, pos[numVert*i + j + 1].x, pos[numVert*i + j + 1].y, pos[numVert*i + j + 1].z);
-      translate(pos[numVert*i + j].x, pos[numVert*i + j].y, pos[numVert*i + j].z);
-      sphere(radius);
-      popMatrix();
-      if(j == numVert - 2) { //Draw the last node of each vertical rope
-        pushMatrix();
-        translate(pos[numVert*i + j + 1].x, pos[numVert*i + j + 1].y, pos[numVert*i + j + 1].z);
-        sphere(radius);
-        popMatrix();
-      }
-    }
-  }
+  //for (int i = 0; i < numHoriz; i++){
+  //  for (int j = 0; j < numVert - 1; j++) {
+  //    pushMatrix();
+  //    line(pos[numVert*i + j].x, pos[numVert*i + j].y, pos[numVert*i + j].z, pos[numVert*i + j + 1].x, pos[numVert*i + j + 1].y, pos[numVert*i + j + 1].z);
+  //    translate(pos[numVert*i + j].x, pos[numVert*i + j].y, pos[numVert*i + j].z);
+  //    sphere(radius);
+  //    popMatrix();
+  //    if(j == numVert - 2) { //Draw the last node of each vertical rope
+  //      pushMatrix();
+  //      translate(pos[numVert*i + j + 1].x, pos[numVert*i + j + 1].y, pos[numVert*i + j + 1].z);
+  //      sphere(radius);
+  //      popMatrix();
+  //    }
+  //  }
+  //}
   
   // Draw Ropes Horizontally
-  for (int i = 0; i < numVert; i++){
-    for (int j = 0; j < numHoriz - 1; j++) {
-      pushMatrix();
-      line(pos[numVert*j + i].x, pos[numVert*j + i].y, pos[numVert*j + i].z, pos[numVert*(j + 1) + i].x, pos[numVert*(j + 1) + i].y, pos[numVert*(j + 1) + i].z);
-      translate(pos[numVert*j + i].x, pos[numVert*j + i].y, pos[numVert*j + i].z);
-      popMatrix();
-    }
-  }
+  //for (int i = 0; i < numVert; i++){
+  //  for (int j = 0; j < numHoriz - 1; j++) {
+  //    pushMatrix();
+  //    line(pos[numVert*j + i].x, pos[numVert*j + i].y, pos[numVert*j + i].z, pos[numVert*(j + 1) + i].x, pos[numVert*(j + 1) + i].y, pos[numVert*(j + 1) + i].z);
+  //    translate(pos[numVert*j + i].x, pos[numVert*j + i].y, pos[numVert*j + i].z);
+  //    popMatrix();
+  //  }
+  //}
   
   pushMatrix();
   fill(0,200,100); 
@@ -175,11 +175,11 @@ void draw() {
   shininess(20);  //More light…
   directionalLight(200, 200, 200, -1, 1, -1); //More light…
   translate(obstaclePos.x, obstaclePos.y, obstaclePos.z);
-    noStroke();
+  noStroke();
   sphere(obstacleRadius);   //Draw sphere
   popMatrix();
   
-  stroke(0,0,0);
+
   
   if (paused)
     surface.setTitle(windowTitle + " [PAUSED]");
@@ -187,17 +187,27 @@ void draw() {
     surface.setTitle(windowTitle + " "+ nf(frameRate,0,2) + "FPS");
     
   //create the towel texture
+  specular(120, 120, 180);  //Setup lights… 
+  ambientLight(90,90,90);   //More light…
+  lightSpecular(255,255,255); 
+  shininess(20);  //More light…
+  directionalLight(200, 200, 200, -1, 1, -1); //More light…
   for (int i = 0; i < numHoriz-1; i++) {
     for (int j = 0; j < numVert-1; j++) {
       beginShape();
       texture(img);
+      normal(1, 0, 1);
       vertex(pos[numVert*i + j].x, pos[numVert*i + j].y, pos[numVert*i + j].z, 0, 0);
+      normal(0, 1, 1);
       vertex(pos[numVert+(numVert*i + j)].x, pos[numVert+(numVert*i + j)].y, pos[numVert+(numVert*i + j)].z, img.width, 0);
+      normal(1, 1, 1); //Update normal
       vertex(pos[numVert+(numVert*i + j) + 1].x, pos[numVert+(numVert*i + j) + 1].y, pos[numVert+(numVert*i + j) + 1].z, img.width, img.height);
+      normal(-1, -1, 1); //Update normal
       vertex(pos[numVert*i + j + 1].x, pos[numVert*i + j + 1].y, pos[numVert*i + j + 1].z, 0, img.height);
       endShape();  
     }
   }
+    stroke(0,0,0);
 }
 
 void keyPressed(){

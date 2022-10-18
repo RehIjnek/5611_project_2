@@ -52,9 +52,9 @@ class Camera
     camera( position.x, position.y, position.z,
             position.x + forwardDir.x, position.y + forwardDir.y, position.z + forwardDir.z,
             upDir.x, upDir.y, upDir.z );
-    println("theta " + theta);
-    println("phi " + phi);
-    println("position " + position);
+    //println("theta " + theta);
+    //println("phi " + phi);
+    //println("position " + position);
   }
   
   // only need to change if you want difrent keys for the controls
