@@ -187,22 +187,13 @@ void draw() {
     surface.setTitle(windowTitle + " "+ nf(frameRate,0,2) + "FPS");
     
   //create the towel texture
-  specular(120, 120, 180);  //Setup lights… 
-  ambientLight(90,90,90);   //More light…
-  lightSpecular(255,255,255); 
-  shininess(20);  //More light…
-  directionalLight(200, 200, 200, -1, 1, -1); //More light…
   for (int i = 0; i < numHoriz-1; i++) {
     for (int j = 0; j < numVert-1; j++) {
       beginShape();
       texture(img);
-      normal(1, 0, 1);
       vertex(pos[numVert*i + j].x, pos[numVert*i + j].y, pos[numVert*i + j].z, 0, 0);
-      normal(0, 1, 1);
       vertex(pos[numVert+(numVert*i + j)].x, pos[numVert+(numVert*i + j)].y, pos[numVert+(numVert*i + j)].z, img.width, 0);
-      normal(1, 1, 1); //Update normal
       vertex(pos[numVert+(numVert*i + j) + 1].x, pos[numVert+(numVert*i + j) + 1].y, pos[numVert+(numVert*i + j) + 1].z, img.width, img.height);
-      normal(-1, -1, 1); //Update normal
       vertex(pos[numVert*i + j + 1].x, pos[numVert*i + j + 1].y, pos[numVert*i + j + 1].z, 0, img.height);
       endShape();  
     }
