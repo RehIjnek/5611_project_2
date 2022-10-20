@@ -40,9 +40,18 @@ void initScene(){
   for (int i = 0; i < numHoriz; i++) {
     for (int j = 0; j < numVert; j++) {
       pos[numVert*i + j] = new Vec3(0,0,0);
-      pos[numVert*i + j].x = 100 + 50*i;
+      pos[numVert*i + j].x = 100 + (200/(numHoriz-1))*i;
       pos[numVert*i + j].z = 8*j; //Make each node a little lower
       vel[numVert*i + j] = new Vec3(0,0,0);
+    }
+  }
+  for (int i = 1; i < numHoriz-1; i++) {
+    for (int j = 1; j < numVert-1; j++) {
+      println(pos[numVert*i + j].distanceTo(pos[numVert*(i-1) + j])); //left
+      println(pos[numVert*i + j].distanceTo(pos[numVert*i + j-1])); //top
+      println(pos[numVert*i + j].distanceTo(pos[numVert*(i+1) + j])); //right
+      println(pos[numVert*i + j].distanceTo(pos[numVert*i + j+1])); //bottom
+      println();
     }
   }
 }
@@ -58,6 +67,33 @@ void update(float dt){
   }
   
   //Compute (damped) Hooke's law for each spring
+  for (int i = 0; i < numHoriz-1; i++){
+    for (int j = 0; j < numVert; j++) {
+      Vec3 diff = pos[numVert*(i + 1) + j].minus(pos[numVert*i + j]);
+      float stringF = -k*(diff.length() - restLen);
+      //println(stringF,diff.length(),restLen);
+    
+      Vec3 stringDir = diff.normalized();
+      float projVbot = dot(vel[numVert*i + j], stringDir);
+      float projVtop = dot(vel[numVert*(i + 1) + j], stringDir);
+      float dampF = -kv*(projVtop - projVbot);
+    
+      //float fricF = -kFric*(projVtop - projVbot);
+      
+      Vec3 force = stringDir.times(stringF+dampF);
+      //Vec3 force = new Vec3(0, 0, 0);
+      acc[numVert*i + j].add(force.times(-1.0/mass));
+      acc[numVert*(i + 1) + j].add(force.times(1.0/mass));  
+      
+      //Vec3 e = pos[numVert*(i + 1) + j].minus(pos[numVert*i + j]);
+      //float l = sqrt(dot(e,e));
+      //e = e/l;
+      //float v1 = dot(e, vel[numVert*i + j]);
+      //float v2 = dot(e, vel[numVert*(i + 1) + j])
+      //Vec3 force = -k*(restLen - l)
+    }
+  }
+  
   for (int i = 0; i < numHoriz; i++){
     for (int j = 0; j < numVert-1; j++) {
       Vec3 diff = pos[numVert*i + j + 1].minus(pos[numVert*i + j]);
@@ -69,33 +105,13 @@ void update(float dt){
       float projVtop = dot(vel[numVert*i + j + 1], stringDir);
       float dampF = -kv*(projVtop - projVbot);
     
-      float fricF = -kFric*(projVtop - projVbot);
+      //float fricF = -kFric*(projVtop - projVbot);
     
-      Vec3 force = stringDir.times(stringF+dampF+fricF);
+      Vec3 force = stringDir.times(stringF+dampF);
       acc[numVert*i + j].add(force.times(-1.0/mass));
       acc[numVert*i + j + 1].add(force.times(1.0/mass));  
     }
   } 
-  
-  for (int i = 0; i < numHoriz - 1; i++){
-    for (int j = 0; j < numVert; j++) {
-      Vec3 diff = pos[numVert*(i + 1) + j].minus(pos[numVert*i + j]);
-      float stringF = -k*(diff.length() - restLen);
-      //println(stringF,diff.length(),restLen);
-    
-      Vec3 stringDir = diff.normalized();
-      float projVbot = dot(vel[numVert*i + j], stringDir);
-      float projVtop = dot(vel[numVert*(i + 1) + j], stringDir);
-      float dampF = -kv*(projVtop - projVbot);
-    
-      float fricF = -kFric*(projVtop - projVbot);
-      
-      //Vec3 force = stringDir.times(stringF+dampF+fricF);
-      Vec3 force = new Vec3(0, 0, 0);
-      acc[numVert*i + j].add(force.times(-1.0/mass));
-      acc[numVert*(i + 1) + j].add(force.times(1.0/mass));  
-    }
-  }
 
   //Eulerian integration
   for (int i = 0; i < numHoriz; i++){

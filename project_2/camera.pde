@@ -11,7 +11,7 @@ class Camera
     position      = new PVector( 859.635, -119.831, 700.990 ); // initial position
     theta         = 13.276; // rotation around Y axis. Starts with forward direction as ( 0, 0, -1 )
     phi           = -0.407; // rotation around X axis. Starts with up direction as ( 0, 1, 0 )
-    moveSpeed     = 40;
+    moveSpeed     = 15;
     turnSpeed     = 0.05; // radians/sec
     boostSpeed    = 5;  // extra speed boost for when you press shift
     
