@@ -11,10 +11,10 @@ void setup() {
   initScene();
 }
 //Obstacle Parameters
-Vec3 obstaclePos = new Vec3(200, 200, 75); 
+Vec3 obstaclePos = new Vec3(200, 200, 100); 
 float obstacleRadius = 80;
 //Simulation Parameters
-float floor = 500;
+float floor = 750;
 Vec3 gravity = new Vec3(0,400,0);
 float radius = 5;
 Vec3 stringTop = new Vec3(200,50,0);
@@ -22,13 +22,15 @@ float restLen = 10;
 float mass = 1.0; //TRY-IT: How does changing mass affect resting length of the rope?
 float k = 200; //TRY-IT: How does changing k affect resting length of the rope?
 float kv = 30; //TRY-IT: How big can you make kv?
+float dragC = 0.01;
+float fluidDens = 0.01;
+Vec3 airVel = new Vec3(0, 0, 0);
 
 //Initial positions and velocities of masses
 static int maxNodes = 1000;
 Vec3 pos[] = new Vec3[maxNodes];
 Vec3 vel[] = new Vec3[maxNodes];
 Vec3 acc[] = new Vec3[maxNodes];
-
 
 int numHoriz = 20;
 int numVert = 12;
@@ -62,17 +64,13 @@ void update(float dt){
     for (int j = 0; j < numVert; j++) {
       Vec3 diff = pos[numVert*(i + 1) + j].minus(pos[numVert*i + j]);
       float stringF = -k*(diff.length() - restLen);
-      //println(stringF,diff.length(),restLen);
     
       Vec3 stringDir = diff.normalized();
       float projVbot = dot(vel[numVert*i + j], stringDir);
       float projVtop = dot(vel[numVert*(i + 1) + j], stringDir);
       float dampF = -kv*(projVtop - projVbot);
-    
-      //float fricF = -kFric*(projVtop - projVbot);
       
       Vec3 force = stringDir.times(stringF+dampF);
-      //Vec3 force = new Vec3(0, 0, 0);
       acc[numVert*i + j].add(force.times(-1.0/mass));
       acc[numVert*(i + 1) + j].add(force.times(1.0/mass));  
     }
@@ -82,20 +80,79 @@ void update(float dt){
     for (int j = 0; j < numVert-1; j++) {
       Vec3 diff = pos[numVert*i + j + 1].minus(pos[numVert*i + j]);
       float stringF = -k*(diff.length() - restLen);
-      //println(stringF,diff.length(),restLen);
-    
+      
       Vec3 stringDir = diff.normalized();
       float projVbot = dot(vel[numVert*i + j], stringDir);
       float projVtop = dot(vel[numVert*i + j + 1], stringDir);
       float dampF = -kv*(projVtop - projVbot);
-    
-      //float fricF = -kFric*(projVtop - projVbot);
     
       Vec3 force = stringDir.times(stringF+dampF);
       acc[numVert*i + j].add(force.times(-1.0/mass));
       acc[numVert*i + j + 1].add(force.times(1.0/mass));  
     }
   } 
+  
+  for (int i = 0; i < numHoriz-1; i++){
+    for (int j = 0; j < numVert-1; j++) {
+      Vec3 v1 = vel[numVert*i + j];
+      Vec3 v2 = vel[numVert*(i + 1) + j];
+      Vec3 v3 = vel[numVert*i + j + 1];
+      Vec3 v4 = vel[numVert*(i + 1) + j + 1];
+      
+      Vec3 relVel1 = v1.plus(v3.plus(v2)).times(1.0/3.0).minus(airVel);
+      Vec3 relVel2 = v3.plus(v2.plus(v4)).times(1.0/3.0).minus(airVel);
+      Vec3 r1 = pos[numVert*i + j];
+      Vec3 r2 = pos[numVert*(i + 1) + j];
+      Vec3 r3 = pos[numVert*i + j + 1];
+      Vec3 r4 = pos[numVert*(i + 1) + j + 1];
+      Vec3 nStar1 = cross(r2.minus(r1), r3.minus(r1));
+      Vec3 nStar2 = cross(r3.minus(r4), r2.minus(r4));
+      Vec3 v2an1 = nStar1.times(relVel1.length() * dot(relVel1, nStar1) / (2 * nStar1.length()));
+      Vec3 v2an2 = nStar2.times(relVel2.length() * dot(relVel1, nStar2) / (2 * nStar2.length()));
+      Vec3 force1 = v2an1.times(-1.0 / 6.0 * fluidDens * dragC);
+      Vec3 force2 = v2an2.times(-1.0 / 6.0 * fluidDens * dragC);
+      
+      acc[numVert*i + j].add(force1.times(1.0/mass));
+      acc[numVert*(i + 1) + j].add(force1.times(1.0/mass));
+      acc[numVert*i + j + 1].add(force1.times(1.0/mass));
+      acc[numVert*(i + 1) + j].add(force2.times(1.0/mass));
+      acc[numVert*i + j + 1].add(force2.times(1.0/mass)); 
+      acc[numVert*(i + 1) + j + 1].add(force2.times(1.0/mass));
+    }
+  } 
+  //for (int i = 0; i < numHoriz - 1; i++){
+  //  for (int j = 0; j < numVert - 1; j++) {
+  //    Vec3 diff = pos[numVert*i + j].minus(pos[numVert*(i + 1) + j + 1]);
+  //    float stringF = -k*(diff.length() - restLen); 
+    
+  //    Vec3 stringDir = diff.normalized();
+  //    float projVbot = dot(vel[numVert*i + j], stringDir);
+  //    float projVtop = dot(vel[numVert*(i + 1) + j + 1], stringDir);
+  //    float dampF = -kv*(projVtop - projVbot);
+    
+    
+  //    Vec3 force = stringDir.times(stringF+dampF);
+  //    acc[numVert*i + j].add(force.times(-1.0/mass));
+  //    acc[numVert*(i + 1) + j + 1].add(force.times(1.0/mass));  
+  //  }
+  //} 
+  
+  //for (int i = 0; i < numHoriz - 1; i++){
+  //  for (int j = 0; j < numVert - 1; j++) {
+  //    Vec3 diff = pos[numVert*i + j + 1].minus(pos[numVert*(i + 1) + j]);
+  //    float stringF = -k*(diff.length() - restLen); 
+    
+  //    Vec3 stringDir = diff.normalized();
+  //    float projVbot = dot(vel[numVert*i + j + 1], stringDir);
+  //    float projVtop = dot(vel[numVert*(i + 1) + j], stringDir);
+  //    float dampF = -kv*(projVtop - projVbot);
+    
+  //    Vec3 force = stringDir.times(stringF+dampF);
+  //    acc[numVert*i + j + 1].add(force.times(-1.0/mass));
+  //    acc[numVert*(i + 1) + j].add(force.times(1.0/mass));  
+  //  }
+  //} 
+
 
   //Eulerian integration
   for (int i = 0; i < numHoriz; i++){
@@ -107,7 +164,7 @@ void update(float dt){
   
   //Collision detection and response
   for (int i = 0; i < numHoriz; i++){
-    for (int j = 0; j < numVert ; j++) {
+    for (int j = 0; j < numVert ; j++) {  
       if (pos[numVert*i + j].y+radius > floor){
         vel[numVert*i + j].y *= -.9;
         pos[numVert*i + j].y = floor - radius;
@@ -115,7 +172,7 @@ void update(float dt){
       
       //sphere collision
       float d = obstaclePos.distanceTo(pos[numVert*i + j]);
-      if (d < obstacleRadius+0.09) {
+      if (d < obstacleRadius + 0.09) {
         Vec3 n = obstaclePos.minus(pos[numVert*i + j]).times(-1);
         n.normalize();
         Vec3 bounce = n.times(dot(vel[numVert*i + j], n));
@@ -179,26 +236,29 @@ void draw() {
   sphere(obstacleRadius);   //Draw sphere
   popMatrix();
   
-
-  
   if (paused)
     surface.setTitle(windowTitle + " [PAUSED]");
   else
     surface.setTitle(windowTitle + " "+ nf(frameRate,0,2) + "FPS");
     
-  //create the towel texture
+  ////create the towel texture
   for (int i = 0; i < numHoriz-1; i++) {
     for (int j = 0; j < numVert-1; j++) {
       beginShape();
       texture(img);
+      normal(1, 0, 1);
       vertex(pos[numVert*i + j].x, pos[numVert*i + j].y, pos[numVert*i + j].z, 0, 0);
+      //normal(1, 0, 1);
       vertex(pos[numVert+(numVert*i + j)].x, pos[numVert+(numVert*i + j)].y, pos[numVert+(numVert*i + j)].z, img.width, 0);
+      //normal(1, 0, 1);
       vertex(pos[numVert+(numVert*i + j) + 1].x, pos[numVert+(numVert*i + j) + 1].y, pos[numVert+(numVert*i + j) + 1].z, img.width, img.height);
+      //normal(1, 0, 1);
       vertex(pos[numVert*i + j + 1].x, pos[numVert*i + j + 1].y, pos[numVert*i + j + 1].z, 0, img.height);
       endShape();  
     }
   }
-    stroke(0,0,0);
+  
+  stroke(0,0,0);
 }
 
 void keyPressed(){
@@ -400,9 +460,11 @@ public class Vec3 {
     float dz = rhs.z - z;
     return sqrt(dx*dx + dy*dy + dz*dz);
   }
-  
 }
 
+Vec3 cross(Vec3 a, Vec3 b) {
+    return new Vec3(a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x);
+}
 float dot(Vec3 a, Vec3 b){
   return a.x*b.x + a.y*b.y + a.z*b.z;
 }
