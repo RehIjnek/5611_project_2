@@ -24,14 +24,14 @@ float k = 200; //TRY-IT: How does changing k affect resting length of the rope?
 float kv = 30; //TRY-IT: How big can you make kv?
 
 //Initial positions and velocities of masses
-static int maxNodes = 100;
+static int maxNodes = 1000;
 Vec3 pos[] = new Vec3[maxNodes];
 Vec3 vel[] = new Vec3[maxNodes];
 Vec3 acc[] = new Vec3[maxNodes];
 
 
-int numHoriz = 6;
-int numVert = 15;
+int numHoriz = 20;
+int numVert = 12;
 int numNodes = numVert* numHoriz;
 
 float kFric = 30.0;
@@ -40,18 +40,9 @@ void initScene(){
   for (int i = 0; i < numHoriz; i++) {
     for (int j = 0; j < numVert; j++) {
       pos[numVert*i + j] = new Vec3(0,0,0);
-      pos[numVert*i + j].x = 100 + (200/(numHoriz-1))*i;
-      pos[numVert*i + j].z = 8*j; //Make each node a little lower
+      pos[numVert*i + j].x = 100 + restLen*i;
+      pos[numVert*i + j].z = restLen*j; //Make each node a little lower
       vel[numVert*i + j] = new Vec3(0,0,0);
-    }
-  }
-  for (int i = 1; i < numHoriz-1; i++) {
-    for (int j = 1; j < numVert-1; j++) {
-      println(pos[numVert*i + j].distanceTo(pos[numVert*(i-1) + j])); //left
-      println(pos[numVert*i + j].distanceTo(pos[numVert*i + j-1])); //top
-      println(pos[numVert*i + j].distanceTo(pos[numVert*(i+1) + j])); //right
-      println(pos[numVert*i + j].distanceTo(pos[numVert*i + j+1])); //bottom
-      println();
     }
   }
 }
@@ -84,13 +75,6 @@ void update(float dt){
       //Vec3 force = new Vec3(0, 0, 0);
       acc[numVert*i + j].add(force.times(-1.0/mass));
       acc[numVert*(i + 1) + j].add(force.times(1.0/mass));  
-      
-      //Vec3 e = pos[numVert*(i + 1) + j].minus(pos[numVert*i + j]);
-      //float l = sqrt(dot(e,e));
-      //e = e/l;
-      //float v1 = dot(e, vel[numVert*i + j]);
-      //float v2 = dot(e, vel[numVert*(i + 1) + j])
-      //Vec3 force = -k*(restLen - l)
     }
   }
   
