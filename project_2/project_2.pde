@@ -24,7 +24,7 @@ float k = 200; //TRY-IT: How does changing k affect resting length of the rope?
 float kv = 30; //TRY-IT: How big can you make kv?
 float dragC = 0.01;
 float fluidDens = 0.01;
-Vec3 airVel = new Vec3(0, 0, 0);
+Vec3 airVel = new Vec3(0, 0, 1000);
 
 //Initial positions and velocities of masses
 static int maxNodes = 1000;
@@ -152,7 +152,15 @@ void update(float dt){
   //    acc[numVert*(i + 1) + j].add(force.times(1.0/mass));  
   //  }
   //} 
-
+  
+  // Tearing
+  for (int i = 0; i < numHoriz; i++){
+    for (int j = 1; j < numVert; j++) {
+      if(mass * acc[numVert*i + j].length() > 4000) {
+        
+      }
+    }
+  }
 
   //Eulerian integration
   for (int i = 0; i < numHoriz; i++){
@@ -177,7 +185,7 @@ void update(float dt){
         n.normalize();
         Vec3 bounce = n.times(dot(vel[numVert*i + j], n));
         vel[numVert*i + j] = vel[numVert*i + j].minus(bounce.times(1.5));
-        pos[numVert*i + j] = pos[numVert*i + j].plus(n.times(0.1 + obstacleRadius - d));
+        pos[numVert*i + j] = pos[numVert*i + j].plus(n.times(1.1 + obstacleRadius - d));
       }
     }
   }

@@ -13,7 +13,7 @@ class Camera
     phi           = -0.407; // rotation around X axis. Starts with up direction as ( 0, 1, 0 )
     moveSpeed     = 15;
     turnSpeed     = 0.05; // radians/sec
-    boostSpeed    = 5;  // extra speed boost for when you press shift
+    boostSpeed    = 2;  // extra speed boost for when you press shift
     
     // dont need to change these
     shiftPressed = false;
