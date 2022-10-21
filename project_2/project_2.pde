@@ -11,7 +11,7 @@ void setup() {
   initScene();
 }
 //Obstacle Parameters
-Vec3 obstaclePos = new Vec3(200, 200, 100); 
+Vec3 obstaclePos = new Vec3(200, 170, 100); 
 float obstacleRadius = 80;
 //Simulation Parameters
 float floor = 750;
@@ -31,13 +31,13 @@ static int maxNodes = 1000;
 Vec3 pos[] = new Vec3[maxNodes];
 Vec3 vel[] = new Vec3[maxNodes];
 Vec3 acc[] = new Vec3[maxNodes];
-
+boolean torn[] = new boolean[maxNodes];
 int numHoriz = 20;
-int numVert = 12;
+int numVert = 14;
 int numNodes = numVert* numHoriz;
 
 float kFric = 30.0;
-
+boolean tearing = false;
 void initScene(){
   for (int i = 0; i < numHoriz; i++) {
     for (int j = 0; j < numVert; j++) {
@@ -45,6 +45,7 @@ void initScene(){
       pos[numVert*i + j].x = 100 + restLen*i;
       pos[numVert*i + j].z = restLen*j; //Make each node a little lower
       vel[numVert*i + j] = new Vec3(0,0,0);
+      torn[numVert*i + j] = false;
     }
   }
 }
@@ -154,11 +155,12 @@ void update(float dt){
   //} 
   
   // Tearing
+  
   for (int i = 0; i < numHoriz; i++){
     for (int j = 1; j < numVert; j++) {
-      if(mass * acc[numVert*i + j].length() > 4000) {
-        
-      }
+      if(mass * acc[numVert*i + j].length() > 5000) {
+        torn[numVert*i + j] = true;
+      } 
     }
   }
 
@@ -185,7 +187,7 @@ void update(float dt){
         n.normalize();
         Vec3 bounce = n.times(dot(vel[numVert*i + j], n));
         vel[numVert*i + j] = vel[numVert*i + j].minus(bounce.times(1.5));
-        pos[numVert*i + j] = pos[numVert*i + j].plus(n.times(1.1 + obstacleRadius - d));
+        pos[numVert*i + j] = pos[numVert*i + j].plus(n.times(1.5 + obstacleRadius - d));
       }
     }
   }
@@ -251,17 +253,25 @@ void draw() {
     
   ////create the towel texture
   for (int i = 0; i < numHoriz-1; i++) {
-    for (int j = 0; j < numVert-1; j++) {
+    for (int j = 0; j < numVert-1; j++) { 
       beginShape();
       texture(img);
       normal(1, 0, 1);
-      vertex(pos[numVert*i + j].x, pos[numVert*i + j].y, pos[numVert*i + j].z, 0, 0);
+      if (!torn[numVert*i + j]) {
+        vertex(pos[numVert*i + j].x, pos[numVert*i + j].y, pos[numVert*i + j].z, 0, 0);
+      }
       //normal(1, 0, 1);
-      vertex(pos[numVert+(numVert*i + j)].x, pos[numVert+(numVert*i + j)].y, pos[numVert+(numVert*i + j)].z, img.width, 0);
+      if (!torn[numVert*(i + 1) + j]) {
+        vertex(pos[numVert*(i + 1) + j].x, pos[numVert*(i + 1) + j].y, pos[numVert*(i + 1) + j].z, img.width, 0);
+      }
       //normal(1, 0, 1);
-      vertex(pos[numVert+(numVert*i + j) + 1].x, pos[numVert+(numVert*i + j) + 1].y, pos[numVert+(numVert*i + j) + 1].z, img.width, img.height);
+      if (!torn[numVert*(i + 1) + j + 1]) {
+        vertex(pos[numVert*(i + 1) + j + 1].x, pos[numVert*(i + 1) + j + 1].y, pos[numVert*(i + 1) + j + 1].z, img.width, img.height);
+      }
       //normal(1, 0, 1);
-      vertex(pos[numVert*i + j + 1].x, pos[numVert*i + j + 1].y, pos[numVert*i + j + 1].z, 0, img.height);
+      if (!torn[numVert*i + j + 1]) {
+        vertex(pos[numVert*i + j + 1].x, pos[numVert*i + j + 1].y, pos[numVert*i + j + 1].z, 0, img.height);
+      }
       endShape();  
     }
   }
@@ -270,8 +280,19 @@ void draw() {
 }
 
 void keyPressed(){
-  if (key == ' ')
+  if (key == ' ') {
     paused = !paused;
+  } else if (key == 'r') {
+    for (int i = 0; i < numHoriz; i++) {
+      for (int j = 0; j < numVert; j++) {
+        pos[numVert*i + j] = new Vec3(0,0,0);
+        pos[numVert*i + j].x = 100 + restLen*i;
+        pos[numVert*i + j].z = restLen*j; //Make each node a little lower
+        vel[numVert*i + j] = new Vec3(0,0,0);
+        torn[numVert*i + j] = false;
+      }
+    }
+  }
   camera.HandleKeyPressed();
 }
 
