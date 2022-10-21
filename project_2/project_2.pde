@@ -14,7 +14,7 @@ void setup() {
 Vec3 obstaclePos = new Vec3(200, 170, 100); 
 float obstacleRadius = 80;
 //Simulation Parameters
-float floor = 750;
+float floor = 2000;
 Vec3 gravity = new Vec3(0,400,0);
 float radius = 5;
 Vec3 stringTop = new Vec3(200,50,0);
@@ -24,16 +24,17 @@ float k = 200; //TRY-IT: How does changing k affect resting length of the rope?
 float kv = 30; //TRY-IT: How big can you make kv?
 float dragC = 0.01;
 float fluidDens = 0.01;
-Vec3 airVel = new Vec3(0, 0, 1000);
+float forceThreshold = 5000;
+Vec3 airVel = new Vec3(0, 0, 0);
 
 //Initial positions and velocities of masses
-static int maxNodes = 1000;
+static int maxNodes = 3000;
 Vec3 pos[] = new Vec3[maxNodes];
 Vec3 vel[] = new Vec3[maxNodes];
 Vec3 acc[] = new Vec3[maxNodes];
 boolean torn[] = new boolean[maxNodes];
-int numHoriz = 20;
-int numVert = 14;
+int numHoriz = 50; //20 for smaller cloth
+int numVert = 25; //14 for smaller cloth
 int numNodes = numVert* numHoriz;
 
 float kFric = 30.0;
@@ -155,10 +156,9 @@ void update(float dt){
   //} 
   
   // Tearing
-  
   for (int i = 0; i < numHoriz; i++){
     for (int j = 1; j < numVert; j++) {
-      if(mass * acc[numVert*i + j].length() > 5000) {
+      if(mass * acc[numVert*i + j].length() > forceThreshold) {
         torn[numVert*i + j] = true;
       } 
     }
@@ -187,7 +187,7 @@ void update(float dt){
         n.normalize();
         Vec3 bounce = n.times(dot(vel[numVert*i + j], n));
         vel[numVert*i + j] = vel[numVert*i + j].minus(bounce.times(1.5));
-        pos[numVert*i + j] = pos[numVert*i + j].plus(n.times(1.5 + obstacleRadius - d));
+        pos[numVert*i + j] = pos[numVert*i + j].plus(n.times(3.5 + obstacleRadius - d));
       }
     }
   }
@@ -282,7 +282,7 @@ void draw() {
 void keyPressed(){
   if (key == ' ') {
     paused = !paused;
-  } else if (key == 'r') {
+  } else if (key == 'n') {
     for (int i = 0; i < numHoriz; i++) {
       for (int j = 0; j < numVert; j++) {
         pos[numVert*i + j] = new Vec3(0,0,0);
