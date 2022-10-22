@@ -24,7 +24,7 @@ float k = 200; //TRY-IT: How does changing k affect resting length of the rope?
 float kv = 30; //TRY-IT: How big can you make kv?
 float dragC = 0.01;
 float fluidDens = 0.01;
-float forceThreshold = 5000;
+float forceThreshold = 50000;
 Vec3 airVel = new Vec3(0, 0, 0);
 
 //Initial positions and velocities of masses
@@ -33,8 +33,8 @@ Vec3 pos[] = new Vec3[maxNodes];
 Vec3 vel[] = new Vec3[maxNodes];
 Vec3 acc[] = new Vec3[maxNodes];
 boolean torn[] = new boolean[maxNodes];
-int numHoriz = 50; //20 for smaller cloth
-int numVert = 25; //14 for smaller cloth
+int numHoriz = 20; //20 for smaller cloth
+int numVert = 14; //14 for smaller cloth
 int numNodes = numVert* numHoriz;
 
 float kFric = 30.0;

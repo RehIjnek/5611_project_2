@@ -66,18 +66,42 @@ Vec2 momentum = new Vec2(0,0);          //Speed the box is translating (derivati
 float angular_momentum = 0;             //Speed the box is rotating (derivative of angle)
 
 Vec2 center = new Vec2(200,200);        //Current position of center of mass
-float angle = 0.4; /*radians*/          //Current rotation amount (orientation)
+float angle = 0; /*radians*/          //Current rotation amount (orientation)
 
 Vec2 total_force = new Vec2(0,0);       //Forces change position (center of mass)
 float total_torque = 0;                 //Torques change orientation (angle)
 
 Vec2 p1,p2,p3,p4;                       //4 corners of the box -- computed in updateCornerPositions()
 
+//Set inital conditions
+Vec2 momentum2 = new Vec2(0,0);          //Speed the box is translating (derivative of position)
+float angular_momentum2 = 0;             //Speed the box is rotating (derivative of angle)
+
+Vec2 center2 = new Vec2(400,200);        //Current position of center of mass
+float angle2 = 0; /*radians*/          //Current rotation amount (orientation)
+
+Vec2 total_force2 = new Vec2(0,0);       //Forces change position (center of mass)
+float total_torque2 = 0;                 //Torques change orientation (angle)
+
+Vec2 q1,q2,q3,q4;                       //4 corners of the box -- computed in updateCornerPositions()
+
+float arrow_angle = 0;
+
 //----------
 // Physics Functions
-void apply_force(Vec2 force, Vec2 applied_position){
-  total_force.add(force);
-  //TODO: also update total_torque
+void apply_force(Vec2 force, Vec2 applied_position, int boxNum){
+  if (boxNum == 1) {
+    total_force.add(force);
+    //TODO: also update total_torque
+    Vec2 displacement = applied_position.minus(center);
+    total_torque += cross(displacement, force);
+  }
+  if (boxNum == 2) {
+    total_force2.add(force);
+    //TODO: also update total_torque
+    Vec2 displacement2 = applied_position.minus(center2);
+    total_torque2 += cross(displacement2, force);
+  }
 }
 
 void update_physics(float dt){
@@ -90,10 +114,32 @@ void update_physics(float dt){
     //Angular Momentum = Torque * time
     //Angular Velocity = (Angular Momentum)/(Rotational Inertia)
     //Orientation += (Angular Velocity) * time
+  angular_momentum += total_torque * dt;
+  float angular_vel = angular_momentum / rot_inertia;
+  angle += angular_vel * dt;
   
   //Reset forces and torques
   total_force = new Vec2(0,0); //Set forces to 0 after they've been applied
   /*TODO*/ //Set torques to 0 after the forces have been applied
+  total_torque = 0;
+  
+  //Update center of mass
+  momentum2.add(total_force2.times(dt));     //Linear Momentum = Force * time
+  Vec2 box_vel2 = momentum2.times(1.0/mass); //Velocity = Momentum / mass
+  center2.add(box_vel2.times(dt));           //Position += Vel * time
+  
+  //TODO: update rotation
+    //Angular Momentum = Torque * time
+    //Angular Velocity = (Angular Momentum)/(Rotational Inertia)
+    //Orientation += (Angular Velocity) * time
+  angular_momentum2 += total_torque2 * dt;
+  float angular_vel2 = angular_momentum2 / rot_inertia;
+  angle2 += angular_vel2 * dt;
+  
+  //Reset forces and torques
+  total_force2 = new Vec2(0,0); //Set forces to 0 after they've been applied
+  /*TODO*/ //Set torques to 0 after the forces have been applied
+  total_torque2 = 0;
 }
 
 
@@ -101,16 +147,24 @@ class ColideInfo{
   public boolean hit = false;
   public Vec2 hitPoint = new Vec2(0,0);
   public Vec2 objectNormal =  new Vec2(0,0);
+  public int boxNum = 0;
 }
 
 
 void updateCornerPositions(){
   Vec2 right = new Vec2(cos(angle),sin(angle)).times(w/2);
   Vec2 up = new Vec2(-sin(angle),cos(angle)).times(-h/2);
-  p1 = center.plus(right).plus(up);
-  p2 = center.plus(right).minus(up);
-  p3 = center.minus(right).plus(up);
-  p4 = center.minus(right).minus(up);
+  p1 = center.plus(right).plus(up); //bottom right corner
+  p2 = center.plus(right).minus(up); //top right corner
+  p3 = center.minus(right).plus(up); //bottom left corner
+  p4 = center.minus(right).minus(up); //top left corner
+  
+  Vec2 right2 = new Vec2(cos(angle2),sin(angle2)).times(w/2);
+  Vec2 up2 = new Vec2(-sin(angle2),cos(angle2)).times(-h/2);
+  q1 = center2.plus(right2).plus(up2); //bottom right corner
+  q2 = center2.plus(right2).minus(up2); //top right corner
+  q3 = center2.minus(right2).plus(up2); //bottom left corner
+  q4 = center2.minus(right2).minus(up2); //top left corner
 }
 
 ColideInfo collisionTest(){
@@ -118,28 +172,207 @@ ColideInfo collisionTest(){
   //We only check if the corners collide
   
   ColideInfo info = new ColideInfo();
-  
+  //check if it hits right wall
   if (p1.x > 600){
     info.hitPoint = p1;
     info.hit = true;
     info.objectNormal = new Vec2(-1,0);
+    info.boxNum = 1;
   }
   if (p2.x > 600){
     info.hitPoint = p2;
     info.hit = true;
     info.objectNormal = new Vec2(-1,0);
+    info.boxNum = 1;
   }
   if (p3.x > 600){
     info.hitPoint = p3;
     info.hit = true;
     info.objectNormal = new Vec2(-1,0);
+    info.boxNum = 1;
   }
   if (p4.x > 600){
     info.hitPoint = p4;
     info.hit = true;
     info.objectNormal = new Vec2(-1,0);
+    info.boxNum = 1;
   }
   //TODO: Test the 4 corners against the left wall
+  if (p1.x < 0){
+    info.hitPoint = p1;
+    info.hit = true;
+    info.objectNormal = new Vec2(1,0);
+    info.boxNum = 1;
+  }
+  if (p2.x < 0){
+    info.hitPoint = p2;
+    info.hit = true;
+    info.objectNormal = new Vec2(1,0);
+    info.boxNum = 1;
+  }
+  if (p3.x < 0){
+    info.hitPoint = p3;
+    info.hit = true;
+    info.objectNormal = new Vec2(1,0);
+    info.boxNum = 1;
+  }
+  if (p4.x < 0){
+    info.hitPoint = p4;
+    info.hit = true;
+    info.objectNormal = new Vec2(1,0);
+    info.boxNum = 1;
+  }
+  //check if it hits bottom wall
+  if (p1.y > 400){
+    info.hitPoint = p1;
+    info.hit = true;
+    info.objectNormal = new Vec2(0,-1);
+    info.boxNum = 1;
+  }
+  if (p2.y > 400){
+    info.hitPoint = p2;
+    info.hit = true;
+    info.objectNormal = new Vec2(0,-1);
+    info.boxNum = 1;
+  }
+  if (p3.y > 400){
+    info.hitPoint = p3;
+    info.hit = true;
+    info.objectNormal = new Vec2(0,-1);
+    info.boxNum = 1;
+  }
+  if (p4.y > 400){
+    info.hitPoint = p4;
+    info.hit = true;
+    info.objectNormal = new Vec2(0,-1);
+    info.boxNum = 1;
+  }
+  //check if it hits top wall
+  if (p1.y < 0){
+    info.hitPoint = p1;
+    info.hit = true;
+    info.objectNormal = new Vec2(0,1);
+    info.boxNum = 1;
+  }
+  if (p2.y < 0){
+    info.hitPoint = p2;
+    info.hit = true;
+    info.objectNormal = new Vec2(0,1);
+    info.boxNum = 1;
+  }
+  if (p3.y < 0){
+    info.hitPoint = p3;
+    info.hit = true;
+    info.objectNormal = new Vec2(0,1);
+    info.boxNum = 1;
+  }
+  if (p4.y < 0){
+    info.hitPoint = p4;
+    info.hit = true;
+    info.objectNormal = new Vec2(0,1);
+    info.boxNum = 1;
+  }
+  
+  //check if it hits right wall
+  if (q1.x > 600){
+    info.hitPoint = q1;
+    info.hit = true;
+    info.objectNormal = new Vec2(-1,0);
+    info.boxNum = 2;
+  }
+  if (q2.x > 600){
+    info.hitPoint = q2;
+    info.hit = true;
+    info.objectNormal = new Vec2(-1,0);
+    info.boxNum = 2;
+  }
+  if (q3.x > 600){
+    info.hitPoint = q3;
+    info.hit = true;
+    info.objectNormal = new Vec2(-1,0);
+    info.boxNum = 2;
+  }
+  if (q4.x > 600){
+    info.hitPoint = q4;
+    info.hit = true;
+    info.objectNormal = new Vec2(-1,0);
+    info.boxNum = 2;
+  }
+  //TODO: Test the 4 corners against the left wall
+  if (q1.x < 0){
+    info.hitPoint = q1;
+    info.hit = true;
+    info.objectNormal = new Vec2(1,0);
+    info.boxNum = 2;
+  }
+  if (q2.x < 0){
+    info.hitPoint = q2;
+    info.hit = true;
+    info.objectNormal = new Vec2(1,0);
+    info.boxNum = 2;
+  }
+  if (q3.x < 0){
+    info.hitPoint = q3;
+    info.hit = true;
+    info.objectNormal = new Vec2(1,0);
+    info.boxNum = 2;
+  }
+  if (q4.x < 0){
+    info.hitPoint = q4;
+    info.hit = true;
+    info.objectNormal = new Vec2(1,0);
+    info.boxNum = 2;
+  }
+  //check if it hits bottom wall
+  if (q1.y > 400){
+    info.hitPoint = q1;
+    info.hit = true;
+    info.objectNormal = new Vec2(0,-1);
+    info.boxNum = 2;
+  }
+  if (q2.y > 400){
+    info.hitPoint = q2;
+    info.hit = true;
+    info.objectNormal = new Vec2(0,-1);
+    info.boxNum = 2;
+  }
+  if (q3.y > 400){
+    info.hitPoint = q3;
+    info.hit = true;
+    info.objectNormal = new Vec2(0,-1);
+    info.boxNum = 2;
+  }
+  if (q4.y > 400){
+    info.hitPoint = q4;
+    info.hit = true;
+    info.objectNormal = new Vec2(0,-1);
+    info.boxNum = 2;
+  }
+  //check if it hits top wall
+  if (q1.y < 0){
+    info.hitPoint = q1;
+    info.hit = true;
+    info.objectNormal = new Vec2(0,1);
+    info.boxNum = 2;
+  }
+  if (q2.y < 0){
+    info.hitPoint = q2;
+    info.hit = true;
+    info.objectNormal = new Vec2(0,1);
+    info.boxNum = 2;
+  }
+  if (q3.y < 0){
+    info.hitPoint = q3;
+    info.hit = true;
+    info.objectNormal = new Vec2(0,1);
+    info.boxNum = 2;
+  }
+  if (q4.y < 0){
+    info.hitPoint = q4;
+    info.hit = true;
+    info.objectNormal = new Vec2(0,1);
+    info.boxNum = 2;
+  }
   
   return info;
 }
@@ -149,20 +382,39 @@ ColideInfo collisionTest(){
 // see Eqn 8-18 of here: https://www.cs.cmu.edu/~baraff/sigcourse/notesd2.pdf
 // or Eqn 9 here: http://www.chrishecker.com/images/e/e7/Gdmphys3.pdf
 //for obstacle-obstacle collisions.
-void resolveCollision(Vec2 hit_point, Vec2 hit_normal, float dt){
-  Vec2 r = hit_point.minus(center);
-  Vec2 r_perp = perpendicular(r);
-  Vec2 object_vel = momentum.times(1/mass);
-  float object_angular_speed = angular_momentum/rot_inertia;
-  Vec2 point_vel = object_vel.plus(r_perp.times(object_angular_speed));
-  println(point_vel,object_vel);
-  float j = -(1+box_bounce)*dot(point_vel,hit_normal);
-  j /= (1/mass + pow(dot(r_perp,hit_normal),2)/rot_inertia);
+void resolveCollision(Vec2 hit_point, Vec2 hit_normal, float dt, int boxNum){
+  if (boxNum == 1) {
+    Vec2 r = hit_point.minus(center);
+    Vec2 r_perp = perpendicular(r);
+    Vec2 object_vel = momentum.times(1/mass);
+    float object_angular_speed = angular_momentum/rot_inertia;
+    Vec2 point_vel = object_vel.plus(r_perp.times(object_angular_speed));
+    //println(point_vel,object_vel);
+    float j = -(1+box_bounce)*dot(point_vel,hit_normal);
+    j /= (1/mass + pow(dot(r_perp,hit_normal),2)/rot_inertia);
  
-  Vec2 impulse = hit_normal.times(j);
-  momentum.add(impulse);
-  println(momentum);
-  angular_momentum += dot(r_perp,impulse);
+    Vec2 impulse = hit_normal.times(j);
+    momentum.add(impulse);
+    //println(momentum);
+    angular_momentum += dot(r_perp,impulse);
+  }
+  
+  if (boxNum == 2) {
+    Vec2 r2 = hit_point.minus(center2);
+    Vec2 r_perp2 = perpendicular(r2);
+    Vec2 object_vel2 = momentum2.times(1/mass);
+    float object_angular_speed2 = angular_momentum2/rot_inertia;
+    Vec2 point_vel2 = object_vel2.plus(r_perp2.times(object_angular_speed2));
+    //println(point_vel2,object_vel2);
+    float j = -(1+box_bounce)*dot(point_vel2,hit_normal);
+    j /= (1/mass + pow(dot(r_perp2,hit_normal),2)/rot_inertia);
+ 
+    Vec2 impulse2 = hit_normal.times(j);
+    momentum2.add(impulse2);
+    //println(momentum2);
+    angular_momentum2 += dot(r_perp2,impulse2);
+  }
+  
   update_physics(1.01*dt); //A small hack, better is just to move the object out of collision directly
 }
 
@@ -171,30 +423,61 @@ void draw(){
   update_physics(dt);
   
   boolean clicked_box = mousePressed && point_in_box(new Vec2(mouseX, mouseY),center,w,h,angle);
+  boolean clicked_box2 = mousePressed && point_in_box(new Vec2(mouseX, mouseY),center2,w,h,angle2);
   
   if (clicked_box) {
     Vec2 force = new Vec2(1,0).times(100);
+    if (arrow_angle == 0) {
+      force = new Vec2(1,0).times(100);
+    }
+    if (arrow_angle == 90) {
+      force = new Vec2(0,1).times(100);
+    }
+    if (arrow_angle == 180) {
+      force = new Vec2(-1,0).times(100);
+    }
+    if (arrow_angle == 270) {
+      force = new Vec2(0,-1).times(100);
+    }
     Vec2 hit_point = new Vec2(mouseX, mouseY);
-    apply_force(force, hit_point);
+    apply_force(force, hit_point, 1);
+  }
+  if (clicked_box2) {
+    Vec2 force = new Vec2(1,0).times(100);
+    if (arrow_angle == 0) {
+      force = new Vec2(1,0).times(100);
+    }
+    if (arrow_angle == 90) {
+      force = new Vec2(0,1).times(100);
+    }
+    if (arrow_angle == 180) {
+      force = new Vec2(-1,0).times(100);
+    }
+    if (arrow_angle == 270) {
+      force = new Vec2(0,-1).times(100);
+    }
+    Vec2 hit_point = new Vec2(mouseX, mouseY);
+    apply_force(force, hit_point, 2);
   }
   
   ColideInfo info = collisionTest(); //TODO: Use this result below
   
   //TODO the these values based on the results of a collision test
-  Boolean hit_something = false; //Did I hit something?
+  Boolean hit_something = info.hit; //Did I hit something?
   if (hit_something){
-    Vec2 hit_point = new Vec2(0,0);
-    Vec2 hit_normal = new Vec2(0,0);
-    resolveCollision(hit_point,hit_normal,dt);
+    int hit_boxNum = info.boxNum;
+    Vec2 hit_point = info.hitPoint;
+    Vec2 hit_normal = info.objectNormal;
+    resolveCollision(hit_point,hit_normal,dt,hit_boxNum);
   }
   
-  Vec2 box_vel = momentum.times(1/mass);
-  float box_speed = box_vel.length();
-  float box_agular_velocity = angular_momentum/rot_inertia;
-  float linear_kinetic_energy = .5*mass*box_speed*box_speed;
-  float rotational_kinetic_energy = .5*rot_inertia*box_agular_velocity*box_agular_velocity;
-  float total_kinetic_energy = linear_kinetic_energy+rotational_kinetic_energy;
-  println("Box Vel:",box_vel,"ang vel:",box_agular_velocity,"linear KE:",linear_kinetic_energy,"rotation KE:",rotational_kinetic_energy,"Total KE:",total_kinetic_energy);
+  //Vec2 box_vel = momentum.times(1/mass);
+  //float box_speed = box_vel.length();
+  //float box_agular_velocity = angular_momentum/rot_inertia;
+  //float linear_kinetic_energy = .5*mass*box_speed*box_speed;
+  //float rotational_kinetic_energy = .5*rot_inertia*box_agular_velocity*box_agular_velocity;
+  //float total_kinetic_energy = linear_kinetic_energy+rotational_kinetic_energy;
+  //println("Box Vel:",box_vel,"ang vel:",box_agular_velocity,"linear KE:",linear_kinetic_energy,"rotation KE:",rotational_kinetic_energy,"Total KE:",total_kinetic_energy);
   
   background(200); //Grey background
   
@@ -216,14 +499,56 @@ void draw(){
   circle(p3.x, p3.y, 4.0);
   circle(p4.x, p4.y, 4.0);
   
-  drawArrow(mouseX, mouseY, 100, 0);
+  fill(255);
+  if (clicked_box2){
+    fill(255,200,200);
+  }
+  pushMatrix();
+  translate(center2.x,center2.y);
+  rotate(angle2);
+  rect(-w/2, -h/2, w, h);
+  popMatrix();
+  
+  fill(0);
+  circle(center2.x, center2.y, 6.0);
+  
+  circle(q1.x, q1.y, 4.0);
+  circle(q2.x, q2.y, 4.0);
+  circle(q3.x, q3.y, 4.0);
+  circle(q4.x, q4.y, 4.0);
+  
+  drawArrow(mouseX, mouseY, 100, arrow_angle);
 }
 
 
 void keyPressed(){
   if (key == 'r'){
     println("Resetting the simulation");
+    momentum = new Vec2(0,0);          //Speed the box is translating (derivative of position)
+    angular_momentum = 0;             //Speed the box is rotating (derivative of angle)
+
+    center = new Vec2(200,200);        //Current position of center of mass
+    angle = 0; /*radians*/          //Current rotation amount (orientation)
+    
+    momentum2 = new Vec2(0,0);          //Speed the box is translating (derivative of position)
+    angular_momentum2 = 0;             //Speed the box is rotating (derivative of angle)
+
+    center2 = new Vec2(400,200);        //Current position of center of mass
+    angle2 = 0; /*radians*/          //Current rotation amount (orientation)
+    
     return;
+  }
+  if (keyCode == UP) {
+    arrow_angle = 270;
+  }
+  if (keyCode == LEFT) {
+    arrow_angle = 180;
+  }
+  if (keyCode == RIGHT) {
+    arrow_angle = 0;
+  }
+  if (keyCode == DOWN) {
+    arrow_angle = 90;
   }
 }
 
