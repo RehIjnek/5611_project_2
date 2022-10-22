@@ -377,6 +377,66 @@ ColideInfo collisionTest(){
   return info;
 }
 
+//object to object collision test
+ColideInfo objectCollisionTest(){
+  updateCornerPositions(); //Compute the 4 corners: p1,p2,p3,p4
+  //We only check if the corners collide
+  
+  ColideInfo info = new ColideInfo();
+  
+  //object to object collision
+  if (point_in_box(p1, center2, w, h, angle2)) {
+    info.hitPoint = p1;
+    info.hit = true;
+    info.objectNormal = new Vec2(cos(angle2), sin(angle2));  
+    info.boxNum = 1;
+  }
+  if (point_in_box(p2, center2, w, h, angle2)) {
+    info.hitPoint = p2;
+    info.hit = true;
+    info.objectNormal = new Vec2(cos(angle2), sin(angle2));  
+    info.boxNum = 1;
+  }
+  if (point_in_box(p3, center2, w, h, angle2)) {
+    info.hitPoint = p3;
+    info.hit = true;
+    info.objectNormal = new Vec2(cos(angle2), sin(angle2));  
+    info.boxNum = 1;
+  }
+  if (point_in_box(p4, center2, w, h, angle2)) {
+    info.hitPoint = p4;
+    info.hit = true;
+    info.objectNormal = new Vec2(cos(angle2), sin(angle2));  
+    info.boxNum = 1;
+  }
+  if (point_in_box(q1, center, w, h, angle)) {
+    info.hitPoint = q1;
+    info.hit = true;
+    info.objectNormal = new Vec2(cos(angle), sin(angle));  
+    info.boxNum = 2;
+  }
+  if (point_in_box(q2, center, w, h, angle)) {
+    info.hitPoint = q2;
+    info.hit = true;
+    info.objectNormal = new Vec2(cos(angle), sin(angle));  
+    info.boxNum = 2;
+  }
+  if (point_in_box(q3, center, w, h, angle)) {
+    info.hitPoint = q3;
+    info.hit = true;
+    info.objectNormal = new Vec2(cos(angle), sin(angle));  
+    info.boxNum = 2;
+  }
+  if (point_in_box(q4, center, w, h, angle)) {
+    info.hitPoint = q4;
+    info.hit = true;
+    info.objectNormal = new Vec2(cos(angle), sin(angle));  
+    info.boxNum = 2;
+  }
+  
+  return info;
+}
+
 //Updates momentum & angular_momentum based on collision using an impulse based method
 //This method assumes you hit an immovable obstacle which simplifies the math
 // see Eqn 8-18 of here: https://www.cs.cmu.edu/~baraff/sigcourse/notesd2.pdf
@@ -465,6 +525,17 @@ void draw(){
   //TODO the these values based on the results of a collision test
   Boolean hit_something = info.hit; //Did I hit something?
   if (hit_something){
+    int hit_boxNum = info.boxNum;
+    Vec2 hit_point = info.hitPoint;
+    Vec2 hit_normal = info.objectNormal;
+    resolveCollision(hit_point,hit_normal,dt,hit_boxNum);
+  }
+  
+  ColideInfo objectInfo = objectCollisionTest(); //TODO: Use this result below
+  
+  //TODO the these values based on the results of a collision test
+  Boolean object_hit_something = objectInfo.hit; //Did I hit something?
+  if (object_hit_something){
     int hit_boxNum = info.boxNum;
     Vec2 hit_point = info.hitPoint;
     Vec2 hit_normal = info.objectNormal;
