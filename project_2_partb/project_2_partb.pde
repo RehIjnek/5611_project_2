@@ -167,7 +167,7 @@ void updateCornerPositions(){
   q4 = center2.minus(right2).minus(up2); //top left corner
 }
 
-ColideInfo collisionTest(){
+ColideInfo collisionTest1(){
   updateCornerPositions(); //Compute the 4 corners: p1,p2,p3,p4
   //We only check if the corners collide
   
@@ -272,6 +272,15 @@ ColideInfo collisionTest(){
     info.objectNormal = new Vec2(0,1);
     info.boxNum = 1;
   }
+  
+  return info;
+}
+
+ColideInfo collisionTest2(){
+  updateCornerPositions(); //Compute the 4 corners: p1,p2,p3,p4
+  //We only check if the corners collide
+  
+  ColideInfo info = new ColideInfo();
   
   //check if it hits right wall
   if (q1.x > 600){
@@ -387,51 +396,83 @@ ColideInfo objectCollisionTest(){
   //object to object collision
   if (point_in_box(p1, center2, w, h, angle2)) {
     info.hitPoint = p1;
-    info.hit = true;
-    info.objectNormal = new Vec2(cos(angle2), sin(angle2));  
+    info.hit = true; 
     info.boxNum = 1;
   }
   if (point_in_box(p2, center2, w, h, angle2)) {
     info.hitPoint = p2;
-    info.hit = true;
-    info.objectNormal = new Vec2(cos(angle2), sin(angle2));  
+    info.hit = true;  
     info.boxNum = 1;
   }
   if (point_in_box(p3, center2, w, h, angle2)) {
     info.hitPoint = p3;
-    info.hit = true;
-    info.objectNormal = new Vec2(cos(angle2), sin(angle2));  
+    info.hit = true; 
     info.boxNum = 1;
   }
   if (point_in_box(p4, center2, w, h, angle2)) {
     info.hitPoint = p4;
-    info.hit = true;
-    info.objectNormal = new Vec2(cos(angle2), sin(angle2));  
+    info.hit = true;  
     info.boxNum = 1;
   }
   if (point_in_box(q1, center, w, h, angle)) {
     info.hitPoint = q1;
-    info.hit = true;
-    info.objectNormal = new Vec2(cos(angle), sin(angle));  
+    info.hit = true; 
     info.boxNum = 2;
   }
   if (point_in_box(q2, center, w, h, angle)) {
     info.hitPoint = q2;
-    info.hit = true;
-    info.objectNormal = new Vec2(cos(angle), sin(angle));  
+    info.hit = true;  
     info.boxNum = 2;
   }
   if (point_in_box(q3, center, w, h, angle)) {
     info.hitPoint = q3;
-    info.hit = true;
-    info.objectNormal = new Vec2(cos(angle), sin(angle));  
+    info.hit = true; 
     info.boxNum = 2;
   }
   if (point_in_box(q4, center, w, h, angle)) {
     info.hitPoint = q4;
     info.hit = true;
-    info.objectNormal = new Vec2(cos(angle), sin(angle));  
     info.boxNum = 2;
+  }
+  
+  //set object normals
+  if (info.boxNum == 1) {
+    float minDist = 9999999.9;
+    if (info.hitPoint.distanceTo(q1) + info.hitPoint.distanceTo(q2) < minDist) { //right
+      minDist = info.hitPoint.distanceTo(q1) + info.hitPoint.distanceTo(q2);
+      info.objectNormal = new Vec2(cos(angle2), sin(angle2));
+    }
+    if (info.hitPoint.distanceTo(q1) + info.hitPoint.distanceTo(q3) < minDist) { //top
+      minDist = info.hitPoint.distanceTo(q1) + info.hitPoint.distanceTo(q3);
+      info.objectNormal = new Vec2(sin(angle2), cos(angle2));
+    }
+    if (info.hitPoint.distanceTo(q2) + info.hitPoint.distanceTo(q4) < minDist) { //bottom
+      minDist = info.hitPoint.distanceTo(q2) + info.hitPoint.distanceTo(q4);
+      info.objectNormal = new Vec2(sin(angle2), -cos(angle2));
+    }
+    if (info.hitPoint.distanceTo(q3) + info.hitPoint.distanceTo(q4) < minDist) { //left
+      minDist = info.hitPoint.distanceTo(q3) + info.hitPoint.distanceTo(q4);
+      info.objectNormal = new Vec2(-cos(angle2), sin(angle2));
+    }
+  }
+  if (info.boxNum == 2) {
+    float minDist = 9999999.9;
+    if (info.hitPoint.distanceTo(p1) + info.hitPoint.distanceTo(p2) < minDist) { //right
+      minDist = info.hitPoint.distanceTo(p1) + info.hitPoint.distanceTo(p2);
+      info.objectNormal = new Vec2(cos(angle), sin(angle));
+    }
+    if (info.hitPoint.distanceTo(p1) + info.hitPoint.distanceTo(p3) < minDist) { //top
+      minDist = info.hitPoint.distanceTo(p1) + info.hitPoint.distanceTo(p3);
+      info.objectNormal = new Vec2(sin(angle), cos(angle));
+    }
+    if (info.hitPoint.distanceTo(p2) + info.hitPoint.distanceTo(p4) < minDist) { //bottom
+      minDist = info.hitPoint.distanceTo(p2) + info.hitPoint.distanceTo(p4);
+      info.objectNormal = new Vec2(sin(angle), -cos(angle));
+    }
+    if (info.hitPoint.distanceTo(p3) + info.hitPoint.distanceTo(p4) < minDist) { //left
+      minDist = info.hitPoint.distanceTo(p3) + info.hitPoint.distanceTo(p4);
+      info.objectNormal = new Vec2(-cos(angle), sin(angle));
+    }
   }
   
   return info;
@@ -478,6 +519,38 @@ void resolveCollision(Vec2 hit_point, Vec2 hit_normal, float dt, int boxNum){
   update_physics(1.01*dt); //A small hack, better is just to move the object out of collision directly
 }
 
+void resolveObjectCollision(Vec2 hit_point, Vec2 hit_normal, float dt, int boxNum){
+  Vec2 rAP = new Vec2 (0,0);
+  Vec2 rBP = new Vec2 (0,0);
+  Vec2 vAB = new Vec2 (0,0);
+  
+  if (boxNum == 1) {
+    rAP = perpendicular(hit_point.minus(center));
+    rBP = perpendicular(hit_point.minus(center2));
+    vAB = momentum.times(1.0/mass).minus(momentum2.times(1.0/mass));
+  }
+  if (boxNum == 2) {
+    rAP = perpendicular(hit_point.minus(center2));
+    rBP = perpendicular(hit_point.minus(center));
+    vAB = momentum2.times(1.0/mass).minus(momentum.times(1.0/mass));
+  }
+  
+  float j = -(1 + box_bounce) * dot(vAB, hit_normal);
+  j /= (dot(hit_normal, hit_normal) * (1.0/mass + 1.0/mass)) + (pow(dot(rAP, hit_normal), 2) / rot_inertia) + (pow(dot(rBP, hit_normal), 2) / rot_inertia);
+  Vec2 impulse = hit_normal.times(j);
+  
+  momentum.add(impulse);
+  angular_momentum += dot(rAP, impulse);
+  
+  float j2 = -j;
+  Vec2 impulse2 = hit_normal.times(j2);
+  
+  momentum2.add(impulse2);
+  angular_momentum2 += dot(rBP, impulse2);
+  
+  update_physics(1.01*dt);
+}
+
 void draw(){
   float dt = 1/frameRate;
   update_physics(dt);
@@ -520,15 +593,26 @@ void draw(){
     apply_force(force, hit_point, 2);
   }
   
-  ColideInfo info = collisionTest(); //TODO: Use this result below
+  ColideInfo info1 = collisionTest1(); //TODO: Use this result below
   
   //TODO the these values based on the results of a collision test
-  Boolean hit_something = info.hit; //Did I hit something?
-  if (hit_something){
-    int hit_boxNum = info.boxNum;
-    Vec2 hit_point = info.hitPoint;
-    Vec2 hit_normal = info.objectNormal;
-    resolveCollision(hit_point,hit_normal,dt,hit_boxNum);
+  Boolean hit_something1 = info1.hit; //Did I hit something?
+  if (hit_something1){
+    int hit_boxNum1 = info1.boxNum;
+    Vec2 hit_point1 = info1.hitPoint;
+    Vec2 hit_normal1 = info1.objectNormal;
+    resolveCollision(hit_point1,hit_normal1,dt,hit_boxNum1);
+  }
+  
+  ColideInfo info2 = collisionTest2(); //TODO: Use this result below
+  
+  //TODO the these values based on the results of a collision test
+  Boolean hit_something2 = info2.hit; //Did I hit something?
+  if (hit_something2){
+    int hit_boxNum2 = info2.boxNum;
+    Vec2 hit_point2 = info2.hitPoint;
+    Vec2 hit_normal2 = info2.objectNormal;
+    resolveCollision(hit_point2,hit_normal2,dt,hit_boxNum2);
   }
   
   ColideInfo objectInfo = objectCollisionTest(); //TODO: Use this result below
@@ -536,10 +620,9 @@ void draw(){
   //TODO the these values based on the results of a collision test
   Boolean object_hit_something = objectInfo.hit; //Did I hit something?
   if (object_hit_something){
-    int hit_boxNum = info.boxNum;
-    Vec2 hit_point = info.hitPoint;
-    Vec2 hit_normal = info.objectNormal;
-    resolveCollision(hit_point,hit_normal,dt,hit_boxNum);
+    Vec2 hit_point = objectInfo.hitPoint;
+    Vec2 hit_normal = objectInfo.objectNormal;
+    resolveObjectCollision(hit_point,hit_normal,dt,objectInfo.boxNum);
   }
   
   //Vec2 box_vel = momentum.times(1/mass);
@@ -589,6 +672,11 @@ void draw(){
   circle(q4.x, q4.y, 4.0);
   
   drawArrow(mouseX, mouseY, 100, arrow_angle);
+  
+  //println("p1: " + p1);
+  //println("p2: " + p2);
+  //println("p3: " + p3);
+  //println("p4: " + p4);
 }
 
 
